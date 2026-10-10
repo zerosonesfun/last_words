@@ -9,3 +9,7 @@ I also want a second file, a recovery key, kept somewhere else. That one can loc
 This does not know whether I have died. It only follows the files.
 
 I have not decided yet where the sealed copy lives, or whether more than one place should hold it. The sketch of the personal file is in [examples/last-words.json](examples/last-words.json).
+
+## How it will work:
+
+![How it will work](examples/how-it-works.jpg)
