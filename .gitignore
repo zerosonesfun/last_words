@@ -1,0 +1,6 @@
+/data/
+/data_path.php
+*.sqlite
+*.sqlite-wal
+*.sqlite-shm
+.DS_Store
