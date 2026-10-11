@@ -8,7 +8,9 @@ I also want a second file, a recovery key, kept somewhere else. That one can loc
 
 This does not know whether I have died. It only follows the files.
 
-I have not decided yet where the sealed copy lives, or whether more than one place should hold it. The sketch of the personal file is in [examples/last-words.json](examples/last-words.json).
+A service holds the sealed message and one share of the key. With one service, that share is the whole key. With more than one, the page needs enough shares before the words appear. Editing the service database cannot publish the message. Publication follows signed events, and the service does not hold the keys that sign an unlock, a cancel, or a re-lock.
+
+The sketch of the personal file is in [examples/last-words.json](examples/last-words.json). The record format is in [docs/protocol.md](docs/protocol.md).
 
 ## How it will work:
 
