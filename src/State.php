@@ -24,6 +24,8 @@ final class State
     public int $n = 0;
     public ?array $currentUnlock = null;
     public array $cancelled = [];
+    public string $ciphertextSha256 = '';
+    public string $nonce = '';
 
     public static function reduce(array $events, int $now): self
     {
@@ -72,6 +74,8 @@ final class State
         $view->ownerPage = $fields['owner_page'];
         $view->k = $k;
         $view->n = $n;
+        $view->ciphertextSha256 = $fields['ciphertext_sha256'];
+        $view->nonce = $fields['nonce'];
         $view->recoveryPubkey = $fields['recovery_pubkey'];
         $recoveryRaw = Keys::b64decode($fields['recovery_pubkey']);
         $trustedRaw = Keys::b64decode($fields['trusted_pubkey']);
@@ -79,7 +83,7 @@ final class State
 
         $recoveryEvents = [];
         foreach ($parsed as $item) {
-            if (!in_array($item['type'], ['relock', 'rotate_trusted', 'rotate_recovery'], true)) {
+            if (!in_array($item['type'], ['relock', 'rotate_trusted', 'rotate_recovery', 'revise'], true)) {
                 continue;
             }
             $seq = (int) $item['fields']['recovery_seq'];
@@ -96,6 +100,7 @@ final class State
         }
 
         $expected = 1;
+        $appliedRevises = [];
         while (isset($recoveryEvents[$expected])) {
             $item = $recoveryEvents[$expected];
             if (!Keys::same($item['signer'], $recoveryRaw)) {
@@ -109,6 +114,10 @@ final class State
             } elseif ($item['type'] === 'rotate_recovery') {
                 $recoveryRaw = Keys::b64decode($item['fields']['new_recovery_pubkey']);
                 $view->recoveryPubkey = $item['fields']['new_recovery_pubkey'];
+            } elseif ($item['type'] === 'revise') {
+                $view->ciphertextSha256 = $item['fields']['ciphertext_sha256'];
+                $view->nonce = $item['fields']['nonce'];
+                $appliedRevises[$expected] = $item;
             }
             $trustedHistory[$expected] = $trustedRaw;
             $view->trustedPubkey = Keys::b64($trustedRaw);
@@ -188,7 +197,7 @@ final class State
         $current = null;
         foreach ($admissible as $unlock) {
             $seen = (int) $unlock['fields']['seen_recovery_seq'];
-            if ($seen < $view->maxRelockSeq) {
+            if ($seen < $view->maxRelockSeq || self::voidedByRevise($unlock, $appliedRevises)) {
                 continue;
             }
             $current = $unlock['fields'];
@@ -209,6 +218,21 @@ final class State
         }
         $view->status = 'published';
         return $view;
+    }
+
+    private static function voidedByRevise(array $unlock, array $revises): bool
+    {
+        $seen = (int) $unlock['fields']['seen_recovery_seq'];
+        $deadline = (int) $unlock['fields']['deadline'];
+        foreach ($revises as $seq => $item) {
+            if ((int) $seq <= $seen) {
+                continue;
+            }
+            if ((int) $item['fields']['revised_at'] < $deadline) {
+                return true;
+            }
+        }
+        return false;
     }
 
     private static function verified(array $event): ?array

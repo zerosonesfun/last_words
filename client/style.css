@@ -1,0 +1,129 @@
+:root {
+  color-scheme: light dark;
+  --text: #1c1917;
+  --bg: #fafaf9;
+  --muted: #44403c;
+  --line: #d6d3d1;
+  --link: #1e3a8a;
+}
+
+@media (prefers-color-scheme: dark) {
+  :root {
+    --text: #f5f5f4;
+    --bg: #1c1917;
+    --muted: #d6d3d1;
+    --line: #44403c;
+    --link: #bfdbfe;
+  }
+}
+
+body {
+  margin: 0 auto;
+  max-width: 40rem;
+  padding: 2rem 1.25rem 4rem;
+  font: 18px/1.55 Georgia, "Iowan Old Style", Palatino, serif;
+  color: var(--text);
+  background: var(--bg);
+}
+
+header {
+  margin-bottom: 2rem;
+}
+
+nav a {
+  margin-right: 0.8rem;
+}
+
+a {
+  color: var(--link);
+}
+
+h1, h2, h3 {
+  font-weight: normal;
+  line-height: 1.25;
+}
+
+.mark {
+  margin: 0 0 0.4rem;
+  letter-spacing: 0.04em;
+}
+
+.muted, footer, small {
+  color: var(--muted);
+}
+
+.note {
+  border-left: 4px solid var(--line);
+  padding-left: 0.9rem;
+}
+
+label {
+  display: block;
+  margin-top: 1rem;
+}
+
+input, textarea, select, button {
+  font: inherit;
+  color: inherit;
+}
+
+input[type="text"],
+input[type="password"],
+input[type="email"],
+input[type="url"],
+input[type="number"],
+textarea,
+select {
+  width: 100%;
+  box-sizing: border-box;
+  padding: 0.4rem 0.5rem;
+  background: var(--bg);
+  border: 1px solid var(--line);
+}
+
+textarea {
+  min-height: 8rem;
+}
+
+button, .button {
+  margin-top: 1rem;
+  padding: 0.4rem 0.8rem;
+  border: 1px solid var(--line);
+  background: var(--bg);
+  color: inherit;
+  cursor: pointer;
+  text-decoration: none;
+  display: inline-block;
+}
+
+:focus {
+  outline: 2px solid var(--link);
+  outline-offset: 2px;
+}
+
+table {
+  width: 100%;
+  border-collapse: collapse;
+}
+
+td, th {
+  text-align: left;
+  vertical-align: top;
+  border-bottom: 1px solid var(--line);
+  padding: 0.4rem 0.3rem;
+}
+
+code, pre {
+  font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
+  font-size: 0.85em;
+}
+
+pre {
+  white-space: pre-wrap;
+  word-break: break-word;
+}
+
+.message {
+  font-size: 1.2rem;
+  white-space: pre-wrap;
+}

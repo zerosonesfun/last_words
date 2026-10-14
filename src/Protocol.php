@@ -27,6 +27,7 @@ final class Protocol
         'relock' => ['message_id', 'recovery_seq', 'relocked_at'],
         'rotate_trusted' => ['message_id', 'recovery_seq', 'trusted_pubkey', 'rotated_at'],
         'rotate_recovery' => ['message_id', 'recovery_seq', 'new_recovery_pubkey', 'rotated_at'],
+        'revise' => ['message_id', 'recovery_seq', 'revised_at', 'ciphertext_sha256', 'nonce'],
     ];
 
     public static function build(string $type, array $fields): string
@@ -246,7 +247,7 @@ final class Protocol
             }
             return;
         }
-        if (in_array($name, ['created_at', 'requested_at', 'deadline', 'cancelled_at', 'relocked_at', 'rotated_at'], true)) {
+        if (in_array($name, ['created_at', 'requested_at', 'deadline', 'cancelled_at', 'relocked_at', 'rotated_at', 'revised_at'], true)) {
             self::checkInt($value, 0, 4000000000);
             return;
         }

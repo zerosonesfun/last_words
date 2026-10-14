@@ -15,7 +15,8 @@
     cancel: ['message_id', 'request_id', 'cancelled_at'],
     relock: ['message_id', 'recovery_seq', 'relocked_at'],
     rotate_trusted: ['message_id', 'recovery_seq', 'trusted_pubkey', 'rotated_at'],
-    rotate_recovery: ['message_id', 'recovery_seq', 'new_recovery_pubkey', 'rotated_at']
+    rotate_recovery: ['message_id', 'recovery_seq', 'new_recovery_pubkey', 'rotated_at'],
+    revise: ['message_id', 'recovery_seq', 'revised_at', 'ciphertext_sha256', 'nonce']
   };
   var UNLOCK_WINDOW = 2592000;
 
@@ -262,7 +263,7 @@
       var recoveryEvents = {};
       var recoveryConflict = false;
       parsed.forEach(function (item) {
-        if (['relock', 'rotate_trusted', 'rotate_recovery'].indexOf(item.type) === -1) return;
+        if (['relock', 'rotate_trusted', 'rotate_recovery', 'revise'].indexOf(item.type) === -1) return;
         var seq = parseInt(item.fields.recovery_seq, 10);
         if (recoveryEvents[seq] && recoveryEvents[seq].body !== item.body) recoveryConflict = true;
         recoveryEvents[seq] = item;
@@ -271,6 +272,9 @@
       var expected = 1;
       var maxRelock = 0;
       var recoveryPubkey = register.fields.recovery_pubkey;
+      var ciphertextSha256 = register.fields.ciphertext_sha256;
+      var nonce = register.fields.nonce;
+      var appliedRevises = {};
       while (recoveryEvents[expected]) {
         var record = recoveryEvents[expected];
         if (!same(record.signer, recoveryRaw)) break;
@@ -279,6 +283,11 @@
         if (record.type === 'rotate_recovery') {
           recoveryRaw = b64decode(record.fields.new_recovery_pubkey);
           recoveryPubkey = record.fields.new_recovery_pubkey;
+        }
+        if (record.type === 'revise') {
+          ciphertextSha256 = record.fields.ciphertext_sha256;
+          nonce = record.fields.nonce;
+          appliedRevises[expected] = record;
         }
         history[expected] = trustedRaw;
         expected++;
@@ -318,24 +327,43 @@
         var cancelKey = b64decode(unlock.fields.cancel_pubkey);
         if (cancelKey && same(item.signer, cancelKey)) cancelled[item.fields.request_id] = true;
       });
-      if (seqConflict) {
-        return { status: 'conflict', problems: problems, currentRequestId: null, recoverySeq: recoverySeq, nextRecoverySeq: expected, nextTrustedSeq: nextTrusted, maxRelockSeq: maxRelock };
+      function seal(status, requestId, deadline) {
+        var out = {
+          status: status,
+          problems: problems,
+          currentRequestId: requestId || null,
+          recoverySeq: recoverySeq,
+          nextRecoverySeq: expected,
+          nextTrustedSeq: nextTrusted,
+          maxRelockSeq: maxRelock,
+          ciphertextSha256: ciphertextSha256,
+          nonce: nonce
+        };
+        if (deadline) out.deadline = deadline;
+        if (status === 'published') out.k = parseInt(register.fields.k, 10);
+        return out;
       }
+      function voidedByRevise(unlock) {
+        var seen = parseInt(unlock.fields.seen_recovery_seq, 10);
+        var deadline = parseInt(unlock.fields.deadline, 10);
+        var seqs = Object.keys(appliedRevises);
+        for (var i = 0; i < seqs.length; i++) {
+          var seq = parseInt(seqs[i], 10);
+          if (seq <= seen) continue;
+          if (parseInt(appliedRevises[seq].fields.revised_at, 10) < deadline) return true;
+        }
+        return false;
+      }
+      if (seqConflict) return seal('conflict', null, null);
       var current = null;
       Object.keys(admissible).map(function (key) { return parseInt(key, 10); }).sort(function (a, b) { return a - b; }).forEach(function (seq) {
         var seen = parseInt(admissible[seq].fields.seen_recovery_seq, 10);
-        if (seen >= maxRelock) current = admissible[seq].fields;
+        if (seen >= maxRelock && !voidedByRevise(admissible[seq])) current = admissible[seq].fields;
       });
-      if (!current) {
-        return { status: maxRelock > 0 ? 'relocked' : 'locked', problems: problems, currentRequestId: null, recoverySeq: recoverySeq, nextRecoverySeq: expected, nextTrustedSeq: nextTrusted, maxRelockSeq: maxRelock };
-      }
-      if (cancelled[current.request_id]) {
-        return { status: 'locked', problems: problems, currentRequestId: current.request_id, recoverySeq: recoverySeq, nextRecoverySeq: expected, nextTrustedSeq: nextTrusted, maxRelockSeq: maxRelock };
-      }
-      if (now < parseInt(current.deadline, 10)) {
-        return { status: 'pending', problems: problems, currentRequestId: current.request_id, deadline: current.deadline, recoverySeq: recoverySeq, nextRecoverySeq: expected, nextTrustedSeq: nextTrusted, maxRelockSeq: maxRelock };
-      }
-      return { status: 'published', problems: problems, currentRequestId: current.request_id, deadline: current.deadline, recoverySeq: recoverySeq, nextRecoverySeq: expected, nextTrustedSeq: nextTrusted, maxRelockSeq: maxRelock, k: parseInt(register.fields.k, 10) };
+      if (!current) return seal(maxRelock > 0 ? 'relocked' : 'locked', null, null);
+      if (cancelled[current.request_id]) return seal('locked', current.request_id, null);
+      if (now < parseInt(current.deadline, 10)) return seal('pending', current.request_id, current.deadline);
+      return seal('published', current.request_id, current.deadline);
     }
 
     function verifyDirectory(document, pinned) {

@@ -11,7 +11,7 @@ These keys are not interchangeable. Each signed record names its type, and verif
 | Message key | Split across services. A full copy is also in the owner's recovery file. | Nothing. It only opens the message. |
 | Trusted person key | The trusted person | `unlock_request` |
 | One-time cancel key | Emailed to the owner for that request | `cancel` for that request id |
-| Recovery key | The owner, offline | `register`, `relock`, `rotate_trusted`, `rotate_recovery` |
+| Recovery key | The owner, offline | `register`, `relock`, `rotate_trusted`, `rotate_recovery`, `revise` |
 | Service key | The service | Directory documents and key rotation. Not publication. |
 
 A service signature does not make a message public. Publication is a conclusion any verifier can recompute.
@@ -48,6 +48,7 @@ Other event types:
 - `cancel`: message id, request id, time. Signed by the cancel key named in that unlock request.
 - `relock`: message id, `recovery_seq`, time. Signed by the current recovery key.
 - `rotate_trusted` and `rotate_recovery`: same recovery sequence, plus the new public key.
+- `revise`: message id, `recovery_seq`, time, ciphertext hash, nonce. Signed by the current recovery key. The message key does not change. The trusted person key cannot sign it.
 
 Directory documents:
 
@@ -80,6 +81,7 @@ An unlock is live only when all of this is true:
 - It is signed by the trusted key that was current at `seen_recovery_seq`.
 - Its trusted sequence is the next integer with no gap.
 - `seen_recovery_seq` is at least the highest re-lock sequence. An older acknowledgement does not survive a newer re-lock.
+- No later `revise` was signed before this unlock's deadline. The comparison uses the signed times, not the verifier's clock. A rewrite after the deadline leaves the message published and changes which sealed text opens.
 - No valid cancel exists for its request id.
 - The verifier's clock is at or past `deadline`.
 
@@ -91,13 +93,13 @@ Clocks do not choose a winner between events. Sequence numbers do. Clocks only a
 
 A service stores a new unlock only if `requested_at` is within 600 seconds of its own clock. That applies to direct submissions and to copies learned from a peer. A trusted person cannot backdate a request and skip the month. A service that was offline for that window does not later adopt the request. The owner's page submits to every share holder immediately, and rolls the request back with the cancel key if one of them rejects it.
 
-Cancellations and re-locks do not use that window on replication. A re-lock from yesterday still has to beat an older unlock.
+Cancellations and re-locks do not use that window on replication. A re-lock from yesterday still has to beat an older unlock. A rewrite uses the same 600 second window when the owner submits it. A copy learned from a peer does not.
 
 A service releases its share only when its own log reduces to `published`. One service with a fast clock can release only its own share. A reader still needs `k` shares, and the reader's own reduction has to say `published` before those shares are used.
 
 ## What a bad service can do
 
-It can hide data, delay mail, or release its one share early. It cannot sign an unlock, a cancel, or a re-lock for keys it does not have. The exception is the one-time cancel key that passes through the service which sends the email. That service could cancel, which keeps the message locked.
+It can hide data, delay mail, or release its one share early. It cannot sign an unlock, a cancel, a re-lock, or a rewrite for keys it does not have. The exception is the one-time cancel key that passes through the service which sends the email. That service could cancel, which keeps the message locked.
 
 This network is not a claim of Byzantine fault tolerance. There is no vote. The owner's keys are the authority. Availability of the plaintext, once published, needs `k` honest-enough services to release shares. Learning about a re-lock needs the client to reach at least one service that has the signed event, or a peer sync that copies it.
 

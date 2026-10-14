@@ -1,0 +1,6 @@
+User-agent: *
+Disallow: /admin.php
+Disallow: /install/
+Disallow: /cron.php
+Disallow: /cancel.php
+Disallow: /api/

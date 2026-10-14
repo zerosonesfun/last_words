@@ -1,16 +1,42 @@
 # Last Words
 
-I want a way to leave a private message on my own website, and to name one person who can ask for it to be published after I die.
+Last Words lets a person store a private message on their own website and name someone they trust to ask for it to be published after they have died. The message stays encrypted. Publishing waits 30 days so the owner can cancel by email. A separate recovery key can re-lock the message if it goes out by mistake.
 
-The message should not sit on the page in the clear. The trusted person gets their own file. Using it does not open the message. It starts a wait of 30 days. During that time I can cancel by email. If I do nothing, the message can be published.
+The same recovery file can replace the sealed text years later. The message key does not change, so the trusted person file still works. Saving new words requires that file. The page alone is not enough. The owner uploads the new `config.js` the page downloads.
 
-I also want a second file, a recovery key, kept somewhere else. That one can lock the message again if it goes out by mistake. It cannot erase a copy someone already saved.
+The software does not know whether someone has died. It follows the keys.
 
-This does not know whether I have died. It only follows the files.
+Anyone can run a service. Services are peers. There is no account to apply for, and no central service that every installation must trust.
 
-A service holds the sealed message and one share of the key. With one service, that share is the whole key. With more than one, the page needs enough shares before the words appear. Editing the service database cannot publish the message. Publication follows signed events, and the service does not hold the keys that sign an unlock, a cancel, or a re-lock.
+## Start here
 
-The sketch of the personal file is in [examples/last-words.json](examples/last-words.json). The record format is in [docs/protocol.md](docs/protocol.md).
+- [Install a service](docs/installation.md)
+- [Create a Last Words page](docs/using-last-words.md)
+- [Run your own service](docs/becoming-a-service.md)
+- [Protocol](docs/protocol.md)
+- [Security and limits](docs/security.md)
+- [Backup and recovery](docs/recovery.md)
+- [Report a vulnerability](SECURITY.md)
+
+A running service also has these guides on its own site: `guide.php` and `become.php`.
+
+## What a locked message is
+
+The owner's browser encrypts the message with a random key, then splits that key. Each chosen service stores the ciphertext and only its own share. With one service, that share is the whole key. With two, both shares are required. With three or more, the default threshold is two, so one service cannot read the message. After a valid waiting period, services release their shares and the owner's page reconstructs the key in the visitor's browser.
+
+Re-locking tells participating services to stop handing the message out. It cannot erase a copy someone already saved.
+
+## Requirements
+
+PHP 8.2 or newer, with PDO SQLite, Sodium, OpenSSL, and JSON. HTTPS in production. A private directory the installer can prove is not downloadable. SMTP for mail. No Node.js, database server, Docker, or Composer is required on the host. PHPMailer 6.9.3 is included under `lib/phpmailer/`.
+
+## Tests
+
+```
+php tests/run.php
+```
+
+The suite uses a stand-in clock, so the 30 day wait is tested without waiting 30 days. It also checks the browser code against the PHP service.
 
 ## How it will work:
 

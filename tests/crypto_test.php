@@ -119,3 +119,79 @@ function test_relock_sequence_beats_an_older_unlock(): void
     $early = State::reduce([$register, $unlock], 1700000000 + 10);
     check_same($early->status, 'pending', 'the message stays private before the deadline');
 }
+
+function test_a_rewrite_keeps_the_key_and_voids_a_waiting_unlock(): void
+{
+    $recovery = Keys::signPair();
+    $trusted = Keys::signPair();
+    $cancel = Keys::signPair();
+    $id = Keys::id();
+    $key = random_bytes(32);
+    $shares = Shamir::split($key, 1, 1);
+    $firstNonce = random_bytes(24);
+    $secondNonce = random_bytes(24);
+    $thirdNonce = random_bytes(24);
+    $first = sodium_crypto_secretbox(Keys::encodeMessage($id, 'Note', 'first'), $firstNonce, $key);
+    $second = sodium_crypto_secretbox(Keys::encodeMessage($id, 'Note', 'second'), $secondNonce, $key);
+    $third = sodium_crypto_secretbox(Keys::encodeMessage($id, 'Note', 'third'), $thirdNonce, $key);
+    $firstHash = hash('sha256', $firstNonce . $first);
+    $secondHash = hash('sha256', $secondNonce . $second);
+    $thirdHash = hash('sha256', $thirdNonce . $third);
+    $register = sign_event('register', [
+        'message_id' => $id,
+        'created_at' => '1700000000',
+        'k' => '1',
+        'n' => '1',
+        'ciphertext_sha256' => $firstHash,
+        'nonce' => Keys::b64($firstNonce),
+        'trusted_pubkey' => Keys::b64($trusted['public']),
+        'recovery_pubkey' => Keys::b64($recovery['public']),
+        'owner_page' => 'https://example.com/words',
+        'services' => 'https://example.com/service',
+        'share_commitments' => Protocol::commitments($shares),
+    ], $recovery['secret'], $recovery['public']);
+    $unlock = sign_event('unlock_request', [
+        'message_id' => $id,
+        'request_id' => Keys::id(),
+        'trusted_seq' => '1',
+        'seen_recovery_seq' => '0',
+        'requested_at' => '1700000000',
+        'deadline' => (string) (1700000000 + Protocol::UNLOCK_WINDOW),
+        'cancel_pubkey' => Keys::b64($cancel['public']),
+    ], $trusted['secret'], $trusted['public']);
+    $forged = sign_event('revise', [
+        'message_id' => $id,
+        'recovery_seq' => '1',
+        'revised_at' => '1700001000',
+        'ciphertext_sha256' => $secondHash,
+        'nonce' => Keys::b64($secondNonce),
+    ], $trusted['secret'], $trusted['public']);
+    $afterDeadline = 1700000000 + Protocol::UNLOCK_WINDOW + 10;
+    $ignored = State::reduce([$register, $unlock, $forged], $afterDeadline);
+    check_same($ignored->status, 'published', 'the trusted person key cannot rewrite the message');
+    check_same($ignored->ciphertextSha256, $firstHash, 'a rejected rewrite leaves the original hash');
+    $revise = sign_event('revise', [
+        'message_id' => $id,
+        'recovery_seq' => '1',
+        'revised_at' => '1700001000',
+        'ciphertext_sha256' => $secondHash,
+        'nonce' => Keys::b64($secondNonce),
+    ], $recovery['secret'], $recovery['public']);
+    $rewritten = State::reduce([$register, $unlock, $revise], $afterDeadline);
+    check_same($rewritten->status, 'locked', 'a rewrite before the deadline voids the waiting request');
+    check_same($rewritten->ciphertextSha256, $secondHash, 'the signed hash is the new sealed text');
+    check_same($rewritten->nextRecoverySeq, 2, 'the next save uses the following sequence');
+    $opened = sodium_crypto_secretbox_open($second, $secondNonce, Shamir::join([$shares[1]]));
+    $decoded = is_string($opened) ? Keys::decodeMessage($opened, $id) : null;
+    check($decoded !== null && $decoded['body'] === 'second', 'the original share opens the new words');
+    $later = sign_event('revise', [
+        'message_id' => $id,
+        'recovery_seq' => '2',
+        'revised_at' => (string) $afterDeadline,
+        'ciphertext_sha256' => $thirdHash,
+        'nonce' => Keys::b64($thirdNonce),
+    ], $recovery['secret'], $recovery['public']);
+    $newest = State::reduce([$register, $unlock, $revise, $later], $afterDeadline);
+    check_same($newest->ciphertextSha256, $thirdHash, 'the next sequence replaces the sealed text again');
+    check_same($newest->status, 'locked', 'the older request stays void');
+}
