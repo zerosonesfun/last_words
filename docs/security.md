@@ -35,10 +35,8 @@ Last Words is a careful mailbox for a message, plus a delay. It is not a way to 
 
 ## Dependencies
 
-- PHPMailer 6.9.3, LGPL-2.1, in `lib/phpmailer/`. One comment was edited to remove a typography dash. Behavior is unchanged.
+- PHPMailer 6.9.3, LGPL-2.1, in `lib/phpmailer/`.
 - TweetNaCl.js 1.0.3, public domain, in `client/vendor/nacl.js`.
-
-Update them by replacing those files and running the tests. Pin the version in the changelog when you do.
 
 ## Passwords and tokens
 
