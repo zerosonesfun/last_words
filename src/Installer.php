@@ -68,14 +68,21 @@ final class Installer
         $rel = str_replace(DIRECTORY_SEPARATOR, '/', $rel);
         $url = rtrim($origin, '/') . $rel . '/' . $name;
         try {
-            $body = $fetch($url);
+            $fetched = $fetch($url);
         } finally {
             @unlink($file);
         }
-        if (!is_string($body)) {
+        $probe = self::probeResult($fetched);
+        if (is_string($probe['body']) && $probe['body'] === $token) {
+            throw new UserError('The data directory can be downloaded over HTTP. The host is not applying the .htaccess rules. Turn on AllowOverride for this site, or move the data directory outside the web root.');
+        }
+        if ($probe['status'] === 403) {
+            return 'Correct .htaccess detected. Data is secure.';
+        }
+        if ($probe['status'] < 200 || $probe['status'] >= 300 || !is_string($probe['body'])) {
             throw new UserError('Could not verify that the data directory is hidden. Check that this site can request its own address, or move the data directory outside the web root.');
         }
-        if (str_contains($body, $token)) {
+        if (str_contains($probe['body'], $token)) {
             throw new UserError('The data directory can be downloaded over HTTP. The host is not applying the .htaccess rules. Turn on AllowOverride for this site, or move the data directory outside the web root.');
         }
         return 'A direct request did not return the private test file.';
@@ -186,6 +193,22 @@ final class Installer
             'password' => (string) ($input['smtp_password'] ?? ''),
             'from_email' => $from,
             'from_name' => 'Last Words',
+        ];
+    }
+
+    private static function probeResult(mixed $fetched): array
+    {
+        if (is_string($fetched)) {
+            return ['status' => 200, 'body' => $fetched];
+        }
+        if (!is_array($fetched)) {
+            return ['status' => 0, 'body' => null];
+        }
+        $status = $fetched['status'] ?? 0;
+        $body = $fetched['body'] ?? null;
+        return [
+            'status' => is_int($status) ? $status : 0,
+            'body' => is_string($body) ? $body : null,
         ];
     }
 

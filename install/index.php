@@ -38,11 +38,11 @@ function install_env(string $dataDir): array
         'outbound' => (bool) ini_get('allow_url_fopen') || function_exists('curl_init'),
         'document_root' => (string) ($_SERVER['DOCUMENT_ROOT'] ?? ''),
         'origin' => ($https ? 'https' : 'http') . '://' . $host,
-        'fetch' => static function (string $url): ?string {
+        'fetch' => static function (string $url): array {
             try {
-                return App::httpGet($url);
+                return App::httpResponse($url);
             } catch (Throwable) {
-                return null;
+                return ['status' => 0, 'body' => null];
             }
         },
         'data_dir' => $dataDir,
@@ -171,7 +171,7 @@ $body .= '<label>Service name<input type="text" name="service_name" value="Last 
 $body .= '<label>Operator email<input type="email" name="operator_email" required></label>';
 $body .= '<label>Source repository<input type="url" name="source_repository" value="https://github.com/zerosonesfun/last_words"></label>';
 $body .= '<label>Private data directory<input type="text" name="data_dir" value="' . $defaultData . '"></label>';
-$body .= '<p class="muted">The default folder sits next to the program and is blocked by .htaccess. Leave it unless you already have a directory outside the web root. The installer requests a test file and stops if that file comes back.</p>';
+$body .= '<p class="muted">The default folder sits next to the program and is blocked by .htaccess. Leave it unless you already have a directory outside the web root. The installer requests a test file. A refusal means .htaccess is working and the data is secure. Installation stops if that file comes back.</p>';
 $body .= '<h2>Email</h2>';
 $body .= '<label>SMTP host<input type="text" name="smtp_host" required></label>';
 $body .= '<label>SMTP port<input type="number" name="smtp_port" value="587" required></label>';

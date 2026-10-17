@@ -61,6 +61,37 @@ function test_private_directory_inside_the_web_root_is_refused_when_readable(): 
     check(is_string($tokenSeen) && !is_file($data . '/' . $tokenSeen), 'the test file is removed');
 }
 
+function test_forbidden_probe_counts_as_htaccess_protection(): void
+{
+    $doc = temp_dir();
+    $data = $doc . '/data';
+    mkdir($data);
+    $detail = Installer::assertPrivate($data, $doc, 'http://127.0.0.1', static function (string $url): array {
+        $token = '';
+        if (preg_match('/canary-([a-f0-9]+)\.txt/', $url, $match) === 1) {
+            $token = $match[1];
+        }
+        return ['status' => 403, 'body' => 'Forbidden ' . $token];
+    });
+    check_same($detail, 'Correct .htaccess detected. Data is secure.', 'a refused test file means the deny rules are working');
+}
+
+function test_missing_probe_still_cannot_confirm_privacy(): void
+{
+    $doc = temp_dir();
+    $data = $doc . '/data';
+    mkdir($data);
+    $threw = false;
+    try {
+        Installer::assertPrivate($data, $doc, 'http://127.0.0.1', static function (): array {
+            return ['status' => 0, 'body' => null];
+        });
+    } catch (UserError $error) {
+        $threw = str_contains($error->getMessage(), 'Could not verify');
+    }
+    check($threw, 'a request that never returns does not count as protection');
+}
+
 function test_private_directory_outside_the_web_root_is_accepted(): void
 {
     $doc = temp_dir();

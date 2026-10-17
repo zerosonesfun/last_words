@@ -175,7 +175,7 @@ final class App
         return Backup::create($this->dataDir, $password);
     }
 
-    public static function httpGet(string $url): string
+    public static function httpResponse(string $url): array
     {
         $context = stream_context_create([
             'http' => [
@@ -186,7 +186,7 @@ final class App
         ]);
         $body = @file_get_contents($url, false, $context);
         if ($body === false) {
-            throw new UserError('The other service did not respond.');
+            return ['status' => 0, 'body' => null];
         }
         $status = 200;
         foreach ($http_response_header ?? [] as $header) {
@@ -194,13 +194,22 @@ final class App
                 $status = (int) $match[1];
             }
         }
-        if ($status >= 400) {
+        return ['status' => $status, 'body' => $body];
+    }
+
+    public static function httpGet(string $url): string
+    {
+        $response = self::httpResponse($url);
+        if (!is_string($response['body'])) {
+            throw new UserError('The other service did not respond.');
+        }
+        if ($response['status'] >= 400) {
             throw new UserError('The other service rejected the request.');
         }
-        if (strlen($body) > 5000000) {
+        if (strlen($response['body']) > 5000000) {
             throw new UserError('The other service sent too much data.');
         }
-        return $body;
+        return $response['body'];
     }
 
     private static function promotePendingKey(string $dataDir, Storage $db): void
