@@ -8,8 +8,8 @@ use LastWords\MemoryTransport;
 function test_cancel_page_script_matches_the_markup(): void
 {
     $root = dirname(__DIR__);
-    $js = (string) file_get_contents($root . '/public/assets/cancel.js');
-    $page = (string) file_get_contents($root . '/public/cancel.php');
+    $js = (string) file_get_contents($root . '/assets/cancel.js');
+    $page = (string) file_get_contents($root . '/cancel.php');
     check(str_contains($page, 'id="cancel-status"'), 'the cancel page has a status line');
     check(str_contains($page, 'id="cancel-go"'), 'the cancel page has a confirm button');
     check(!str_contains($js, 'cancel-app'), 'the cancel script must not wait for an element the page does not have');
@@ -30,7 +30,7 @@ function test_pages_escape_message_text_and_get_does_not_publish(): void
     $before = $app->storage->one('SELECT COUNT(*) AS n FROM events');
 
     $log = temp_dir() . '/server.log';
-    $cmd = escapeshellarg(PHP_BINARY) . ' -S 127.0.0.1:' . $port . ' -t ' . escapeshellarg(dirname(__DIR__) . '/public');
+    $cmd = escapeshellarg(PHP_BINARY) . ' -S 127.0.0.1:' . $port . ' -t ' . escapeshellarg(dirname(__DIR__));
     $env = getenv();
     if (!is_array($env)) {
         $env = [];

@@ -8,6 +8,16 @@ The software does not know whether someone has died. It follows the keys.
 
 Anyone can run a service. Services are peers. There is no account to apply for, and no central service that every installation must trust.
 
+## Which file to use
+
+`./release.sh` writes three zip files into `dist/`. A published release is those same files.
+
+- **`last-words-1.0.0-service.zip`** is for someone starting a service. Upload it into the site folder the host already uses, then open `install/` in a browser.
+- **`last-words-1.0.0-page.zip`** is for someone leaving a message on their own website. Upload it into a folder on that site, then open `setup.html`.
+- **`last-words-1.0.0.zip`** is the whole project, for reading the code, the docs, and the tests.
+
+The version number in the file name matches `src/Version.php`.
+
 ## Start here
 
 - [Install a service](docs/installation.md)

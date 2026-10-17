@@ -9,3 +9,4 @@ First public release.
 - A signed event log that services can replicate. Clients verify signatures and try the next service when one is down or invalid.
 - Encrypted operator backups, service key rotation, and the static client for a personal website.
 - A later rewrite of the sealed text. The message key stays the same, and the recovery file is required.
+- The service upload is the site folder. `.htaccess` and `web.config` hide the program and the data directory when the host cannot choose a document root.

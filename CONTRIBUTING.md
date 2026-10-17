@@ -11,4 +11,4 @@ Bugs and patches are welcome. Keep changes small enough that another PHP develop
 
 Security reports go through [SECURITY.md](SECURITY.md), not the public issue list.
 
-Vendor updates: replace `lib/phpmailer/` from the pinned PHPMailer release, or `client/vendor/nacl.js` from TweetNaCl.js 1.0.3, then copy `nacl.js` to `public/assets/nacl.js`. Copy `client/protocol.js` to `public/assets/protocol.js` as well. The test suite checks that those copies match.
+Vendor updates: replace `lib/phpmailer/` from the pinned PHPMailer release, or `client/vendor/nacl.js` from TweetNaCl.js 1.0.3, then copy `nacl.js` to `assets/nacl.js`. Copy `client/protocol.js` to `assets/protocol.js` as well. The test suite checks that those copies match.

@@ -1,0 +1,23 @@
+# This folder is the site. The rules below keep the program and the data
+# directory from being downloaded when the host will not move the document root.
+Options -Indexes
+
+<FilesMatch "^\.">
+    Require all denied
+    Deny from all
+</FilesMatch>
+
+<FilesMatch "\.(md|sh|sql)$">
+    Require all denied
+    Deny from all
+</FilesMatch>
+
+<FilesMatch "^(data_path\.php|config\.example\.php|release\.sh)$">
+    Require all denied
+    Deny from all
+</FilesMatch>
+
+<IfModule mod_rewrite.c>
+    RewriteEngine On
+    RewriteRule ^(src|lib|migrations|resources|data|tests|docs|client|examples|dist)(/|$) - [F,L]
+</IfModule>

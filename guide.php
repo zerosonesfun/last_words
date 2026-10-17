@@ -2,8 +2,8 @@
 
 declare(strict_types=1);
 
-require dirname(__DIR__) . '/src/autoload.php';
-require dirname(__DIR__) . '/src/Web.php';
+require __DIR__ . '/src/autoload.php';
+require __DIR__ . '/src/Web.php';
 
 $repo = 'https://github.com/zerosonesfun/last_words';
 try {

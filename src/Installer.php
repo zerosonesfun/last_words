@@ -12,12 +12,17 @@ final class Installer
         $extensions = $env['extensions'] ?? [];
         $rows = [];
         $rows[] = self::row('PHP 8.2 or newer', version_compare($php, '8.2.0', '>='), $php);
-        foreach (['pdo_sqlite', 'sodium', 'openssl', 'json'] as $extension) {
+        foreach (['pdo_sqlite', 'openssl', 'json'] as $extension) {
             $ok = in_array($extension, $extensions, true);
             $rows[] = self::row($extension, $ok, $ok ? 'available' : 'missing');
         }
-        $sodiumOk = function_exists('sodium_crypto_sign_keypair') && function_exists('sodium_crypto_secretbox');
-        $rows[] = self::row('Sodium sign and secretbox', $sodiumOk, $sodiumOk ? 'available' : 'missing');
+        $sodiumOk = in_array('sodium', $extensions, true)
+            && function_exists('sodium_crypto_sign_keypair')
+            && function_exists('sodium_crypto_secretbox');
+        $sodiumDetail = $sodiumOk
+            ? 'available'
+            : 'Missing. Sodium is the encryption that ships with PHP. It is not a separate program. In the host panel, enable the sodium PHP extension, or ask the host to set extension=sodium, then reload this page.';
+        $rows[] = self::row('Sodium', $sodiumOk, $sodiumDetail);
         $rows[] = self::row('random_bytes', !empty($env['random']), !empty($env['random']) ? 'available' : 'missing');
         $httpsOk = !empty($env['https']) || !empty($env['local']);
         $rows[] = self::row('HTTPS', $httpsOk, $httpsOk ? 'accepted' : 'HTTPS is required, except on localhost');
@@ -68,10 +73,10 @@ final class Installer
             @unlink($file);
         }
         if (!is_string($body)) {
-            throw new UserError('Could not verify that the data directory is hidden. Move it outside the web root.');
+            throw new UserError('Could not verify that the data directory is hidden. Check that this site can request its own address, or move the data directory outside the web root.');
         }
         if (str_contains($body, $token)) {
-            throw new UserError('The data directory can be downloaded over HTTP. Installation stopped.');
+            throw new UserError('The data directory can be downloaded over HTTP. The host is not applying the .htaccess rules. Turn on AllowOverride for this site, or move the data directory outside the web root.');
         }
         return 'A direct request did not return the private test file.';
     }

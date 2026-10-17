@@ -2,8 +2,8 @@
 
 declare(strict_types=1);
 
-require dirname(__DIR__, 2) . '/src/autoload.php';
-require dirname(__DIR__, 2) . '/src/Web.php';
+require dirname(__DIR__) . '/src/autoload.php';
+require dirname(__DIR__) . '/src/Web.php';
 
 use LastWords\App;
 use LastWords\Installer;
@@ -21,7 +21,7 @@ function install_data_dir(): string
     if (is_string($env) && $env !== '') {
         return $env;
     }
-    return dirname(__DIR__, 2) . '/data';
+    return dirname(__DIR__) . '/data';
 }
 
 function install_env(string $dataDir): array
@@ -75,7 +75,7 @@ function install_page(string $body): void
     echo "\n</main>\n</body>\n</html>\n";
 }
 
-if (is_file(install_data_dir() . '/INSTALLED') || is_file(dirname(__DIR__, 2) . '/data/INSTALLED')) {
+if (is_file(install_data_dir() . '/INSTALLED') || is_file(dirname(__DIR__) . '/data/INSTALLED')) {
     http_response_code(404);
     header('Content-Type: text/plain; charset=UTF-8');
     echo "Not found.\n";
@@ -114,8 +114,8 @@ if (($_SERVER['REQUEST_METHOD'] ?? 'GET') === 'POST') {
                 'smtp_password' => (string) ($_POST['smtp_password'] ?? ''),
                 'from_email' => trim((string) ($_POST['from_email'] ?? '')),
             ], $env, $transport);
-            if ($dataDir !== dirname(__DIR__, 2) . '/data') {
-                $pathFile = dirname(__DIR__, 2) . '/data_path.php';
+            if ($dataDir !== dirname(__DIR__) . '/data') {
+                $pathFile = dirname(__DIR__) . '/data_path.php';
                 file_put_contents($pathFile, "<?php\nreturn " . var_export($dataDir, true) . ";\n");
             }
         } catch (UserError $caught) {
@@ -158,7 +158,7 @@ foreach ($checks as $check) {
 }
 $guess = e((isset($_SERVER['HTTPS']) && $_SERVER['HTTPS'] !== 'off' ? 'https' : 'http') . '://' . ($_SERVER['HTTP_HOST'] ?? 'localhost') . rtrim(dirname(dirname($_SERVER['SCRIPT_NAME'] ?? '/install/index.php')), '/'));
 $token = e(csrf_token());
-$defaultData = e(dirname(__DIR__, 2) . '/data');
+$defaultData = e(dirname(__DIR__) . '/data');
 $body = '<h1>Install Last Words</h1>';
 $body .= '<p>The installer checks the host, sends a test email, then creates keys and the database. It will not continue if a required check fails.</p>';
 if ($error !== '') {
@@ -171,7 +171,7 @@ $body .= '<label>Service name<input type="text" name="service_name" value="Last 
 $body .= '<label>Operator email<input type="email" name="operator_email" required></label>';
 $body .= '<label>Source repository<input type="url" name="source_repository" value="https://github.com/zerosonesfun/last_words"></label>';
 $body .= '<label>Private data directory<input type="text" name="data_dir" value="' . $defaultData . '"></label>';
-$body .= '<p class="muted">Use a folder outside the web root when you can. The installer tests that the folder is not downloadable.</p>';
+$body .= '<p class="muted">The default folder sits next to the program and is blocked by .htaccess. Leave it unless you already have a directory outside the web root. The installer requests a test file and stops if that file comes back.</p>';
 $body .= '<h2>Email</h2>';
 $body .= '<label>SMTP host<input type="text" name="smtp_host" required></label>';
 $body .= '<label>SMTP port<input type="number" name="smtp_port" value="587" required></label>';

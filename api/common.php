@@ -2,8 +2,8 @@
 
 declare(strict_types=1);
 
-require dirname(__DIR__, 2) . '/src/autoload.php';
-require dirname(__DIR__, 2) . '/src/Web.php';
+require dirname(__DIR__) . '/src/autoload.php';
+require dirname(__DIR__) . '/src/Web.php';
 
 use LastWords\Log;
 use LastWords\UserError;

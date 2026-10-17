@@ -2,8 +2,8 @@
 
 declare(strict_types=1);
 
-require dirname(__DIR__) . '/src/autoload.php';
-require dirname(__DIR__) . '/src/Web.php';
+require __DIR__ . '/src/autoload.php';
+require __DIR__ . '/src/Web.php';
 
 $repo = 'https://github.com/zerosonesfun/last_words';
 $url = '';
@@ -33,7 +33,7 @@ $body = <<<HTML
 <ul>
 <li>PHP 8.2 or newer, with PDO SQLite, Sodium, OpenSSL, and JSON.</li>
 <li>HTTPS for the public address. Localhost is the only plain HTTP exception, and it is for testing.</li>
-<li>A private directory outside the web root, or a directory the installer can prove is not downloadable.</li>
+<li>The default data directory, which .htaccess blocks, or another directory the installer can prove is not downloadable.</li>
 <li>Outgoing mail through SMTP.</li>
 <li>A way for the host to POST to <code>cron.php</code> on a schedule. The installer explains the command. If the host cannot do that, publication still runs when the work endpoint receives a POST, but that is not a guarantee.</li>
 <li><code>allow_url_fopen</code> or curl, so the service can talk to peers you add.</li>
@@ -42,9 +42,9 @@ $body = <<<HTML
 <h2>Install</h2>
 <ol>
 <li>Download a release from <a href="{$repo}">the source repository</a>.</li>
-<li>Upload the zip and extract it with the hosting file manager. Point the site at the <code>public</code> folder when the host lets you choose a document root.</li>
+<li>Upload the service zip and extract it with the hosting file manager, into the site folder the host already uses. You do not need to move a <code>public</code> folder.</li>
 <li>Visit <code>install/</code> in a browser.</li>
-<li>Read the checks. Set the public URL, SMTP, and the private data directory if the default one is inside the web root.</li>
+<li>Read the checks. Set the public URL, SMTP, and the data directory only if you are not using the default one.</li>
 <li>Install. Save the admin password, the reset token, and the cron key from that page. They are not shown again.</li>
 <li>Add the cron command in the hosting panel. It must be a POST, not a plain visit.</li>
 </ol>

@@ -10,7 +10,7 @@ Last Words is a careful mailbox for a message, plus a delay. It is not a way to 
 - GET does not move the state machine.
 - Admin forms use a session token. The API does not use cookies. The signature is the authorization.
 - SQL uses prepared statements. Message ids are 32 hex characters. Paths are not taken from request fields.
-- The installer refuses to finish when a private-file probe can be downloaded, or when a required PHP feature is missing.
+- The installer refuses to finish when a private-file probe can be downloaded, or when a required PHP feature is missing. The default data directory is beside the program and is blocked by `.htaccess`.
 - Rate limits apply to sign-in, reset, and event submission.
 - Pages escape text. The public message is inserted with `textContent`.
 - Error pages do not print paths, queries, or stack traces. Details go to `error.log` in the private directory.

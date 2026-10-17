@@ -90,9 +90,9 @@ function test_browser_code_matches_the_php_service(): void
     $sig = Keys::b64decode((string) $result['signature']);
     check($sig !== null && Keys::verify($fixture['sign_body'], $sig, $recovery['public']), 'php rejected a browser signature');
     $protocol = file_get_contents($root . '/client/protocol.js');
-    $copy = file_get_contents($root . '/public/assets/protocol.js');
+    $copy = file_get_contents($root . '/assets/protocol.js');
     check($protocol !== false && $protocol === $copy, 'the service copy of protocol.js has drifted');
     $nacl = file_get_contents($root . '/client/vendor/nacl.js');
-    $naclCopy = file_get_contents($root . '/public/assets/nacl.js');
+    $naclCopy = file_get_contents($root . '/assets/nacl.js');
     check($nacl !== false && $nacl === $naclCopy, 'the service copy of nacl.js has drifted');
 }

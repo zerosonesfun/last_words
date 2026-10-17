@@ -8,23 +8,23 @@ The host needs:
 
 - PHP 8.2 or newer
 - PDO SQLite
-- The Sodium extension, including signatures and secretbox
+- Sodium, the encryption library that ships with PHP. If the installer says it is missing, enable the sodium PHP extension in the host panel, or ask the host to set `extension=sodium`. It is not a program you install yourself.
 - OpenSSL
 - JSON
 - HTTPS on the public address (localhost is the only plain HTTP exception, and it is for testing)
 - `allow_url_fopen` or curl, so you can add peers later
-- A place to put private files that the web server will not hand out
+- Apache or IIS rules that can hide folders. The release includes `.htaccess` and `web.config` for this.
 - SMTP for outgoing mail
 - A hosting cron job that can send a POST request
 
 The installer checks these. If one is missing it stops. It does not fall back to a weaker mode.
 
-Point the domain at the `public` folder when the host allows a document root. If the whole project sits inside the web root, the private data directory must still be somewhere else, or protected so thoroughly that the installer cannot download a test file from it.
+Upload the service zip into the folder the host already uses as the site. You do not point the domain at a separate `public` folder. `.htaccess` refuses requests for `src`, `lib`, `migrations`, `resources`, and `data`. The installer writes a private test file and fetches it. If the file comes back, installation stops. That happens when the host ignores `.htaccess`. Turn on AllowOverride, or pick a data directory outside the web root.
 
 ## Steps
 
-1. Download the release zip from the source repository.
-2. Upload it and extract it with the hosting file manager.
+1. Download the service zip from the source repository. Its name ends in `-service.zip`.
+2. Upload it and extract it into the site folder with the hosting file manager.
 3. Visit `install/` in a browser.
 4. Read every check. A row marked Stop means you should fix the host before continuing.
 5. Enter the public URL, the operator email, SMTP settings, and the private data directory.

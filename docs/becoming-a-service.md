@@ -6,6 +6,8 @@ You do not need approval from the author of this software. Install the same rele
 
 Independent services matter because a person's page can keep working when one host disappears, and because a locked message should not be readable by a single operator. That second part is only true when the owner picked a threshold greater than one. Say so if someone asks you to be their only service.
 
+Upload the service release into the host's site folder. The `.htaccess` file hides the program and the data directory, so the host does not need a separate document root.
+
 ## What you can see
 
 Message ids, ciphertext, your share, public keys, and the owner's email address when they named your service. You need the address to send mail. The database copy of the address and of queued mail is encrypted with the service storage key. The admin backup is encrypted again with a password you choose at download time.
