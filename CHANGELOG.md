@@ -1,5 +1,10 @@
 # Changelog
 
+## 1.0.3
+
+- The installer treats a refused test file as working `.htaccess` and reports that the data directory is secure.
+- A failed test email names the mail error instead of a generic installation failure.
+
 ## 1.0.0
 
 First public release.

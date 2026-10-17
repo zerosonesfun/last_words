@@ -24,6 +24,21 @@ function test_fresh_install_sends_mail_and_refuses_a_second_time(): void
     check($again, 'a second install is refused');
 }
 
+function test_install_reports_a_mail_failure(): void
+{
+    $mail = new MemoryTransport();
+    $mail->fail = true;
+    $dir = temp_dir();
+    $message = '';
+    try {
+        Installer::install($dir, install_input('http://127.0.0.1/service'), host_env($dir), $mail);
+    } catch (UserError $error) {
+        $message = $error->getMessage();
+    }
+    check(str_contains($message, 'The test email could not be sent.'), $message);
+    check(!is_file($dir . '/INSTALLED'), 'a mail failure does not finish installation');
+}
+
 function test_install_refuses_an_incompatible_host(): void
 {
     $mail = new MemoryTransport();

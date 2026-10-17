@@ -56,7 +56,7 @@ Directory documents:
 lastwords.directory.v1
 endpoint=https://example.com
 sign_pubkey=<base64>
-version=1.0.0
+version=1.0.3
 ```
 
 Service rotation:

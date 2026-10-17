@@ -122,7 +122,8 @@ if (($_SERVER['REQUEST_METHOD'] ?? 'GET') === 'POST') {
             $error = $caught->getMessage();
         } catch (Throwable $caught) {
             Log::error($dataDir, $caught);
-            $error = 'Installation failed before it could finish.';
+            $detail = Log::safe($caught->getMessage());
+            $error = $detail !== '' ? $detail : 'Installation failed before it could finish.';
         }
     }
 }

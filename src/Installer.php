@@ -121,7 +121,14 @@ final class Installer
         }
         $repository = trim((string) ($input['source_repository'] ?? Version::SOURCE_REPOSITORY));
         Protocol::checkUrl($repository, false);
-        $transport->send($operator, 'Last Words test', "This is a test from your new Last Words service.\n\nIf you received it, outgoing mail works.\n");
+        try {
+            $transport->send($operator, 'Last Words test', "This is a test from your new Last Words service.\n\nIf you received it, outgoing mail works.\n");
+        } catch (UserError $error) {
+            throw $error;
+        } catch (\Throwable $error) {
+            $detail = Log::safe($error->getMessage());
+            throw new UserError($detail === '' ? 'The test email could not be sent.' : 'The test email could not be sent. ' . $detail);
+        }
 
         if (!is_dir($dataDir) && !mkdir($dataDir, 0700, true) && !is_dir($dataDir)) {
             throw new UserError('Could not create the data directory.');

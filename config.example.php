@@ -20,5 +20,5 @@ return [
     'source_repository' => 'https://github.com/zerosonesfun/last_words',
     'cron_key' => '',
     'installed_at' => 0,
-    'version' => '1.0.0',
+    'version' => '1.0.3',
 ];

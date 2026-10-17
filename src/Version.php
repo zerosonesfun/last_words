@@ -6,7 +6,7 @@ namespace LastWords;
 
 final class Version
 {
-    public const VERSION = '1.0.0';
+    public const VERSION = '1.0.3';
 
     // Change this if the reference repository moves. Each installation can
     // also store its own link at setup time.
