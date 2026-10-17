@@ -24,14 +24,14 @@ Choose two or more services if you can. With one service, that operator holds th
 
 1. Write the message and, if you want, a title. Both stay encrypted until publication.
 2. Enter your email and the public URL of `index.html`.
-3. Enter one service URL per line.
+3. Enter one service URL per line. If you do not have a service you would prefer to use, you may use https://wilcosky.com/last_words.
 4. Download three files when the page says every service accepted the message:
    - `config.js`, upload this next to `index.html`
    - `last-words-trusted.json`, give this only to the trusted person
    - `last-words-recovery.json`, store this somewhere else, not in the same mailbox and not beside their file
 5. Leave the confirmation on screen until those files are saved. The recovery file is the copy of the message key. The services do not keep a full copy of that key.
 
-The public page should then say the message is locked, and it should not show the text.
+The public page should then say the message is locked, and it should not show the text. If you do not see that, make sure you uploaded the new config.js after submitting your last words, and clear all caches.
 
 ## The trusted person
 
